@@ -119,13 +119,13 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Blockers */}
-        {product.blockers.length > 0 && (
+        {product.blockers && product.blockers.length > 0 && (
           <div>
             <h4 className="text-xs font-semibold text-red-700 mb-1">Blockers</h4>
             <div className="space-y-0.5">
               {product.blockers.slice(0, 1).map((blocker, index) => (
                 <div key={index} className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-                  • {blocker.length > 30 ? blocker.substring(0, 30) + '...' : blocker}
+                  • {blocker && blocker.length > 30 ? blocker.substring(0, 30) + '...' : blocker}
                 </div>
               ))}
             </div>
@@ -139,7 +139,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div>
               <p className="text-xs font-medium text-gray-900 mb-0.5">Next Action</p>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {product.nextAction.length > 50 ? product.nextAction.substring(0, 50) + '...' : product.nextAction}
+                {product.nextAction ? (product.nextAction.length > 50 ? product.nextAction.substring(0, 50) + '...' : product.nextAction) : 'No action defined'}
               </p>
             </div>
           </div>

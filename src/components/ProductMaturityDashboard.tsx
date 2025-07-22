@@ -9,6 +9,9 @@ import { Product, Stage, StageId } from '@/types';
 const ProductMaturityDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [chorusProduct, setChorusProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [expandedStages, setExpandedStages] = useState({
     'V1': true,
     'V2': true,
@@ -17,8 +20,31 @@ const ProductMaturityDashboard = () => {
     'V5': true
   });
 
-  // Mock data baseado nos documentos reais
-  const products: Product[] = [
+  // API function to fetch product data
+  const fetchChorusData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch('http://localhost:8000/maturity/products/chorus');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch Chorus data: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched data:', data);
+      console.log('Chorus ID:', data?.id);
+      setChorusProduct(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch Chorus data');
+      console.error('Error fetching Chorus data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data baseado nos documentos reais (except Chorus)
+  const mockProducts: Product[] = [
     {
       id: 'kenna',
       name: 'Kenna',
@@ -46,34 +72,6 @@ const ProductMaturityDashboard = () => {
       blockers: ['AI speaker identification system', 'Account page adjustments'],
       nextAction: 'Fix P1 speaker identification - blocking V3 kickoff',
       kickoffDate: '2025-07-14'
-    },
-    {
-      id: 'chorus',
-      name: 'Chorus',
-      stage: 'V3',
-      targetStage: 'V4',
-      description: '🎼 Collaboration Platform',
-      daysInStage: 14,
-      status: 'ready' as const,
-      readinessScore: 95,
-      url: 'https://chorus.dooor.ai',
-      criteria: {
-        alpha_users: true,
-        p1_bugs_fixed: true,
-        monitoring: true,
-        user_engagement: true
-      },
-      metrics: {
-        target_testers: 25,
-        active_testers: 22,
-        agents_per_user: 4.2,
-        target_agents: 4,
-        onboarding_completion: 85,
-        target_onboarding: 80
-      },
-      blockers: [],
-      nextAction: 'Ready to graduate to V4 - schedule transition review',
-      kickoffDate: '2025-07-07'
     },
     {
       id: 'duet',
@@ -153,6 +151,23 @@ const ProductMaturityDashboard = () => {
     }
   ];
 
+  // Combine mock products with fetched Chorus data
+  const products: Product[] = [
+    ...mockProducts,
+    ...(chorusProduct ? [{
+      ...chorusProduct,
+      stage: chorusProduct.stage || 'V1', // Default to V1 if stage is null
+      description: chorusProduct.description || '🎼 Music Generation Platform',
+      daysInStage: chorusProduct.daysInStage || 0,
+      targetStage: chorusProduct.targetStage || 'V2',
+      blockers: chorusProduct.blockers || [],
+      nextAction: chorusProduct.nextAction || 'No action defined'
+    }] : [])
+  ];
+
+  console.log('All products:', products);
+  console.log('Chorus product:', chorusProduct);
+
   const stages: Stage[] = [
     { id: 'V1', name: 'V1', label: 'Demo/Conceito', color: 'amber' },
     { id: 'V2', name: 'V2', label: 'Protótipo', color: 'blue' },
@@ -162,7 +177,9 @@ const ProductMaturityDashboard = () => {
   ];
 
   const getStageProducts = (stageId: string) => {
-    return products.filter(product => product.stage === stageId);
+    const stageProducts = products.filter(product => product.stage === stageId);
+    console.log(`Stage ${stageId} products:`, stageProducts);
+    return stageProducts;
   };
 
 
@@ -183,11 +200,17 @@ const ProductMaturityDashboard = () => {
 
   const handleRefresh = () => {
     setLastUpdated(new Date());
+    fetchChorusData();
   };
 
   useEffect(() => {
+    // Fetch Chorus data on component mount
+    fetchChorusData();
+    
     const timer = setInterval(() => {
       setLastUpdated(new Date());
+      // Refresh Chorus data every minute
+      fetchChorusData();
     }, 60000); // Update every minute
     return () => clearInterval(timer);
   }, []);
@@ -202,6 +225,37 @@ const ProductMaturityDashboard = () => {
       />
       
       <StatsOverview products={products} />
+      
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+              <p className="text-blue-800 text-sm">Loading Chorus data from backend...</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Backend Connection Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at localhost:8000</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pipeline Columns */}
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
