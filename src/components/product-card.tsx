@@ -14,6 +14,7 @@ import { Product } from '@/types';
 
 interface ProductCardProps {
   product: Product;
+  onClick?: () => void;
 }
 
 const getStatusConfig = (status: string) => {
@@ -53,12 +54,15 @@ const getStatusConfig = (status: string) => {
   }
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onClick }: ProductCardProps) {
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = statusConfig.icon;
 
   return (
-    <Card className="bg-gray-50 border-gray-200 hover:shadow-md transition-all cursor-pointer">
+    <Card 
+      className="bg-gray-50 border-gray-200 hover:shadow-md transition-all cursor-pointer"
+      onClick={onClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>

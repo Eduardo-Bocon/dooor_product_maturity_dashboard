@@ -19,6 +19,7 @@ interface StageColumnProps {
   products: Product[];
   isExpanded: boolean;
   onToggle: () => void;
+  onProductClick?: (product: Product) => void;
 }
 
 
@@ -44,7 +45,7 @@ const getTitleColorClass = (color: StageColor) => {
   return colorMap[color] || 'text-gray-600';
 };
 
-export function StageColumn({ stage, products, isExpanded, onToggle }: StageColumnProps) {
+export function StageColumn({ stage, products, isExpanded, onToggle, onProductClick }: StageColumnProps) {
   const stageColorClasses = getStageColorClasses(stage.color);
   const titleColorClass = getTitleColorClass(stage.color);
 
@@ -83,7 +84,11 @@ export function StageColumn({ stage, products, isExpanded, onToggle }: StageColu
         <CardContent className="p-3 space-y-3 flex-1 overflow-y-auto">
           {products.length > 0 ? (
             products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onClick={() => onProductClick?.(product)}
+              />
             ))
           ) : (
             <div className="text-center py-6 text-gray-500">

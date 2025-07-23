@@ -9,7 +9,7 @@ This is a **Next.js** React dashboard for tracking product maturity across diffe
 - **Styling**: Tailwind CSS v4 + shadcn/ui components
 - **Icons**: Lucide React
 - **State Management**: React hooks (useState, useEffect)
-- **Data Source**: Currently uses mock data (no backend integration yet)
+- **Data Source**: Python backend API integration via HTTP endpoints
 
 ## 🎯 Product Maturity Model (V1-V5)
 
@@ -54,9 +54,10 @@ src/
 ### ProductMaturityDashboard.tsx
 - **Location**: `src/components/ProductMaturityDashboard.tsx:1`
 - **Main dashboard component** that orchestrates the entire UI
-- Contains **mock data** for 5 products: Kenna, Chorus, Duet, Cadence, n8n-content
+- Fetches real-time data from Python backend API at `http://localhost:8000/maturity/products`
 - Manages state for expanded/collapsed stages and last updated time
 - Auto-refreshes every minute
+- **Drag & Drop**: Products can be dragged between stages to update their maturity level
 
 ### Product Data Structure
 Each product contains:
@@ -74,37 +75,29 @@ Each product contains:
 - **Product count** display for each stage
 - **Status summaries** when collapsed showing ready/blocked/active counts
 
-## 📊 Current Mock Data Products
+## 📊 Current Products (from Python Backend)
 
-### 1. Kenna (Healthcare AI Platform)
-- **Stage**: V2 → V3 (blocked)
-- **URL**: https://kenna-front-2.vercel.app
-- **Status**: Blocked by AI speaker identification system
-- **Readiness**: 75%
+### Backend Products:
+The dashboard dynamically loads products from the Python backend API. Current products include:
 
-### 2. Chorus (Collaboration Platform)
-- **Stage**: V3 → V4 (ready)
-- **URL**: https://chorus.dooor.ai
-- **Status**: Ready to advance
-- **Readiness**: 95%
+### 1. Chorus
+- **URL**: https://chorus-staging.dooor.ai
+- **Status**: Ready (100% readiness score)
+- **Backend Data**: Fetched from `/maturity/products` endpoint
 
-### 3. Duet (AI Chat Platform)  
-- **Stage**: V3 → V3 (in-progress)
-- **URL**: https://chat-a.dooor.ai
-- **Status**: Recently started, fixing P2 issues
-- **Readiness**: 90%
+### 2. Cadence
+- **URL**: https://cadence-staging.dooor.ai
+- **Status**: Blocked (0% readiness score)
 
-### 4. Cadence (Product Suite)
-- **Stage**: V1 → V2 (in-progress)
-- **URL**: None yet
-- **Status**: Completing UI standardization
-- **Readiness**: 60%
+### 3. Kenna
+- **URL**: https://kenna-staging.dooor.ai
+- **Status**: Blocked (0% readiness score)
 
-### 5. n8n-content (Content Management)
-- **Stage**: V1 → V2 (in-progress) 
-- **URL**: None yet
-- **Status**: Gathering user feedback
-- **Readiness**: 70%
+### 4. Duet
+- **URL**: https://duet-staging.dooor.ai
+- **Status**: Blocked (0% readiness score)
+
+**Note**: All products are fetched with real-time data from the Python backend, with null-safe defaults applied for missing values.
 
 ## 🚀 Development & Deployment
 
@@ -118,18 +111,46 @@ npm run lint       # ESLint checking
 
 ### Key Features:
 - **Responsive design** - Works on desktop and mobile
-- **Real-time updates** - Auto-refreshes every minute
+- **Real-time updates** - Auto-refreshes every minute from Python backend
 - **Interactive UI** - Expand/collapse stages, filter controls
+- **Drag & Drop** - Move products between stages with visual feedback
 - **Progress tracking** - Visual progress bars and status indicators
 - **Detailed metrics** - Exit criteria, blockers, and next actions
+- **CORS-enabled** - Properly configured for localhost development
 
-## 🔗 Backend Integration (Future)
-Currently uses mock data embedded in `ProductMaturityDashboard.tsx:21-154`. The application is designed to integrate with a backend API that should provide:
+## 🔗 Backend Integration (Active)
+The application is fully integrated with a Python backend API running on `http://localhost:8000`. Current endpoints:
 
-- **GET /products** - List all products with their current status
-- **PUT /products/:id** - Update product information
-- **GET /products/:id/metrics** - Get detailed metrics for a product
-- **POST /products** - Create new product entries
+### API Endpoints:
+- **GET /maturity/products** - Fetches all products with maturity data
+- **PATCH /maturity/products/:id/stage** - Updates product stage via drag & drop
+- **GET /maturity/products/:id** - Get individual product data (legacy support)
+
+### Backend Response Format:
+```json
+{
+  "products": [
+    {
+      "id": "chorus",
+      "name": "chorus", 
+      "stage": null,
+      "status": "ready",
+      "readinessScore": 100.0,
+      "url": "https://chorus-staging.dooor.ai",
+      "criteria": {"staging": true},
+      "metrics": {},
+      "blockers": [],
+      "nextAction": null
+    }
+  ]
+}
+```
+
+### Frontend Safety Features:
+- **Null-safe defaults** applied to all backend data
+- **Optimistic updates** for drag & drop operations
+- **Error handling** with automatic data refresh on API failures
+- **CORS configuration** for localhost development
 
 The `Product` interface in `src/types/index.ts:1-16` defines the expected data structure for backend integration.
 
@@ -143,8 +164,16 @@ The `Product` interface in `src/types/index.ts:1-16` defines the expected data s
 
 ## 📝 Development Notes
 - Uses client-side rendering (`'use client'` directive)
-- No external API calls - all data is mocked
+- **Active backend integration** with Python API at localhost:8000
+- **Drag & Drop functionality** implemented with native HTML5 DnD API
 - TypeScript strict mode enabled
 - Tailwind CSS with custom color palette
 - Component-based architecture following React best practices
-- Ready for backend integration when API becomes available
+- **Production-ready** with full backend integration and error handling
+
+## 🎯 Recent Updates
+- ✅ **Backend Integration**: Replaced mock data with live Python API
+- ✅ **Drag & Drop**: Added interactive stage movement functionality  
+- ✅ **CORS Resolution**: Fixed cross-origin resource sharing issues
+- ✅ **Error Handling**: Added comprehensive null-safe data processing
+- ✅ **API Optimization**: Implemented optimistic updates and error recovery

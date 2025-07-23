@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { StatsOverview } from '@/components/stats-overview';
 import { StageColumn } from '@/components/stage-column';
+import { ProductDetailsPopup } from '@/components/product-details-popup';
 import { Product, Stage, StageId } from '@/types';
 
 const ProductMaturityDashboard = () => {
@@ -19,13 +20,14 @@ const ProductMaturityDashboard = () => {
     'V4': true,
     'V5': true
   });
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // API function to fetch all products data
   const fetchProductsData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:8000/maturity/products');
+      const response = await fetch('https://back-product-maturity.onrender.com/maturity/products');
       
       if (!response.ok) {
         throw new Error(`Failed to fetch products data: ${response.status}`);
@@ -100,6 +102,72 @@ const ProductMaturityDashboard = () => {
     fetchProductsData();
   };
 
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleClosePopup = () => {
+    setSelectedProduct(null);
+  };
+
+  const handleStageChange = async (productId: string, newStage: string) => {
+    try {
+      // Try the documented endpoint first
+      let response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stage: newStage })
+      });
+
+      // If 404, try alternative endpoint structure
+      if (!response.ok && response.status === 404) {
+        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ stage: newStage })
+        });
+      }
+
+      // If still not working, try PUT method
+      if (!response.ok && response.status === 404) {
+        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ stage: newStage })
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to update product stage: ${response.status} - ${response.statusText}`);
+      }
+
+      console.log(`Successfully updated ${productId} to stage ${newStage}`);
+
+      // Refresh products data to get updated state
+      await fetchProductsData();
+      
+      // Update the selected product if it's still open
+      if (selectedProduct && selectedProduct.id === productId) {
+        const updatedProduct = products.find(p => p.id === productId);
+        if (updatedProduct) {
+          setSelectedProduct(updatedProduct);
+        }
+      }
+      
+      // Close popup after successful stage change
+      setSelectedProduct(null);
+    } catch (err) {
+      console.error('Error updating product stage:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update product stage');
+    }
+  };
+
   useEffect(() => {
     // Fetch all products data on component mount
     fetchProductsData();
@@ -147,7 +215,7 @@ const ProductMaturityDashboard = () => {
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">Backend Connection Error</h3>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
-                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at localhost:8000</p>
+                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at back-product-maturity.onrender.com</p>
               </div>
             </div>
           </div>
@@ -168,6 +236,7 @@ const ProductMaturityDashboard = () => {
                 products={stageProducts}
                 isExpanded={isExpanded}
                 onToggle={() => toggleStage(stage.id as StageId)}
+                onProductClick={handleProductClick}
               />
             );
           })}
@@ -182,6 +251,15 @@ const ProductMaturityDashboard = () => {
           </p>
         </div>
       </div>
+
+      {/* Product Details Popup */}
+      {selectedProduct && (
+        <ProductDetailsPopup
+          product={selectedProduct}
+          onClose={handleClosePopup}
+          onStageChange={handleStageChange}
+        />
+      )}
     </div>
   );
 };
