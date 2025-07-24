@@ -89,12 +89,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             </h3>
             <p className="text-sm text-gray-600">{product.description}</p>
           </div>
-          <div className="flex items-center space-x-1">
-            <Badge variant="secondary" className="text-sm">
-              {product.daysInStage}d
-            </Badge>
-            <MoreHorizontal className="w-3 h-3 text-gray-400" />
-          </div>
+          
         </div>
 
         <div className={`flex items-center space-x-2 p-2 rounded-lg ${statusConfig.bg} ${statusConfig.border} border`}>
@@ -110,7 +105,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <div>
           <div className="flex justify-between items-center mb-1">
             <span className="text-sm font-medium text-gray-700">Readiness</span>
-            <span className="text-sm font-semibold text-gray-900">{product.readinessScore}%</span>
+            <span className="text-sm font-semibold text-gray-900">{Math.round(product.readinessScore)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1.5">
             <div 
