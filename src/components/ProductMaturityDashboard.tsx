@@ -247,7 +247,7 @@ const ProductMaturityDashboard = () => {
       <div className="bg-white border-t border-gray-200 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm text-gray-500">
-            📅 Last updated: {lastUpdated.toLocaleString()} • 🤖 AI Analysis Active • 🔄 Auto-refresh every 15min
+            Feito por: Boçon 😎
           </p>
         </div>
       </div>

@@ -25,13 +25,13 @@ interface StageColumnProps {
 
 const getStageColorClasses = (color: StageColor) => {
   const colorMap = {
-    amber: 'border-amber-500 bg-amber-50',
-    blue: 'border-blue-500 bg-blue-50',
-    purple: 'border-purple-500 bg-purple-50',
-    cyan: 'border-cyan-500 bg-cyan-50',
-    green: 'border-green-500 bg-green-50'
+    amber: 'border-t-amber-500',
+    blue: 'border-t-blue-500',
+    purple: 'border-t-purple-500',
+    cyan: 'border-t-cyan-500',
+    green: 'border-t-green-500'
   };
-  return colorMap[color] || 'border-gray-500 bg-gray-50';
+  return colorMap[color] || 'border-t-gray-500';
 };
 
 const getTitleColorClass = (color: StageColor) => {
@@ -50,7 +50,7 @@ export function StageColumn({ stage, products, isExpanded, onToggle, onProductCl
   const titleColorClass = getTitleColorClass(stage.color);
 
   return (
-    <Card className={`border-l-4 ${stageColorClasses} shadow-sm transition-all duration-300 ${
+    <Card className={`border-t-4 ${stageColorClasses} bg-white shadow-sm transition-all duration-300 ${
       isExpanded ? 'min-h-96' : 'h-auto'
     } flex flex-col`}>
       {/* Stage Header - Always Visible */}

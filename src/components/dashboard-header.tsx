@@ -8,6 +8,7 @@ import {
   Maximize2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface DashboardHeaderProps {
   lastUpdated: Date;
@@ -24,16 +25,24 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              🎯 Product Maturity Pipeline
-            </h1>
-            <p className="mt-2 text-gray-600">
-              AI-Powered Development Stage Tracking
-            </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Image
+              src="/dooor_black.svg"
+              alt="Dooor Logo"
+              width={120}
+              height={33}
+              className="h-8 w-auto"
+            />
+            <div className="h-8 w-px bg-gray-300"></div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Product Maturity Pipeline
+              </h1>
+            </div>
           </div>
+          
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Clock className="w-4 h-4" />
