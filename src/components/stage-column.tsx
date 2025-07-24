@@ -45,13 +45,25 @@ const getTitleColorClass = (color: StageColor) => {
   return colorMap[color] || 'text-gray-600';
 };
 
+const getLabelColorClass = (color: StageColor) => {
+  const colorMap = {
+    amber: 'bg-amber-500 text-white',
+    blue: 'bg-blue-500 text-white',
+    purple: 'bg-purple-500 text-white',
+    cyan: 'bg-cyan-500 text-white',
+    green: 'bg-green-500 text-white'
+  };
+  return colorMap[color] || 'bg-gray-500 text-white';
+};
+
 export function StageColumn({ stage, products, isExpanded, onToggle, onProductClick }: StageColumnProps) {
   const stageColorClasses = getStageColorClasses(stage.color);
   const titleColorClass = getTitleColorClass(stage.color);
+  const labelColorClass = getLabelColorClass(stage.color);
 
   return (
     <Card className={`border-t-4 ${stageColorClasses} bg-white shadow-sm transition-all duration-300 ${
-      isExpanded ? 'min-h-96' : 'h-auto'
+      isExpanded ? 'min-h-96' : 'h-40'
     } flex flex-col`}>
       {/* Stage Header - Always Visible */}
       <CardHeader className="border-b border-gray-200">
@@ -70,7 +82,7 @@ export function StageColumn({ stage, products, isExpanded, onToggle, onProductCl
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
             )}
           </Button>
-          <p className="text-sm text-gray-600 uppercase tracking-wide">
+          <p className={`text-sm font-semibold uppercase tracking-wide px-3 py-1 rounded-[4px] inline-block ${labelColorClass}`}>
             {stage.label}
           </p>
           <div className="mt-2 text-xs text-gray-500">

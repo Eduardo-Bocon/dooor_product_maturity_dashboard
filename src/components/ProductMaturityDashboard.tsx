@@ -21,6 +21,15 @@ const ProductMaturityDashboard = () => {
     'V5': true
   });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProjectsFilter, setSelectedProjectsFilter] = useState<string[]>([]);
+
+  // Get unique project names for filter
+  const availableProjects = [...new Set(products.map(product => product.name))].sort();
+  
+  // Filter products based on selected projects
+  const filteredProducts = selectedProjectsFilter.length > 0 
+    ? products.filter(product => selectedProjectsFilter.includes(product.name))
+    : products;
 
   // API function to fetch all products data
   const fetchProductsData = async () => {
@@ -76,7 +85,7 @@ const ProductMaturityDashboard = () => {
   ];
 
   const getStageProducts = (stageId: string) => {
-    const stageProducts = products.filter(product => product.stage === stageId);
+    const stageProducts = filteredProducts.filter(product => product.stage === stageId);
     console.log(`Stage ${stageId} products:`, stageProducts);
     return stageProducts;
   };
@@ -187,9 +196,12 @@ const ProductMaturityDashboard = () => {
         allExpanded={Object.values(expandedStages).every(Boolean)}
         onToggleAll={handleToggleAll}
         onRefresh={handleRefresh}
+        availableProjects={availableProjects}
+        selectedProjects={selectedProjectsFilter}
+        onProjectFilter={setSelectedProjectsFilter}
       />
       
-      <StatsOverview products={products} />
+      <StatsOverview products={filteredProducts} />
       
       {/* Loading and Error States */}
       {loading && (
