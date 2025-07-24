@@ -191,17 +191,18 @@ const ProductMaturityDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader
-        lastUpdated={lastUpdated}
-        allExpanded={Object.values(expandedStages).every(Boolean)}
-        onToggleAll={handleToggleAll}
-        onRefresh={handleRefresh}
-        availableProjects={availableProjects}
-        selectedProjects={selectedProjectsFilter}
-        onProjectFilter={setSelectedProjectsFilter}
-      />
-      
-      <StatsOverview products={filteredProducts} />
+      <div className={`${selectedProduct ? 'blur-sm' : ''}`}>
+        <DashboardHeader
+          lastUpdated={lastUpdated}
+          allExpanded={Object.values(expandedStages).every(Boolean)}
+          onToggleAll={handleToggleAll}
+          onRefresh={handleRefresh}
+          availableProjects={availableProjects}
+          selectedProjects={selectedProjectsFilter}
+          onProjectFilter={setSelectedProjectsFilter}
+        />
+        
+        <StatsOverview products={filteredProducts} />
       
       {/* Loading and Error States */}
       {loading && (
@@ -262,6 +263,8 @@ const ProductMaturityDashboard = () => {
             Feito por: Boçon 😎
           </p>
         </div>
+      </div>
+
       </div>
 
       {/* Product Details Popup */}

@@ -63,3 +63,8 @@ body {
   width: 100%;
   height: 100%;
 }
+
+/* Custom modal backdrop - darker overlay */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.4) !important;
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   X,
   Clock,
@@ -11,7 +11,8 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -74,23 +75,37 @@ const getStageNavigation = (currentStage: string) => {
 };
 
 export function ProductDetailsPopup({ product, onClose, onStageChange }: ProductDetailsPopupProps) {
+  const [isChangingStage, setIsChangingStage] = useState(false);
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = statusConfig.icon;
   const navigation = getStageNavigation(product.stage);
 
-  const handleStageChange = (newStage: string) => {
-    onStageChange(product.id, newStage);
+  const handleStageChange = async (newStage: string) => {
+    setIsChangingStage(true);
+    try {
+      await onStageChange(product.id, newStage);
+    } finally {
+      setIsChangingStage(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+        {isChangingStage && (
+          <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-lg">
+            <div className="flex flex-col items-center space-y-2">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <span className="text-sm text-gray-600">Updating stage...</span>
+            </div>
+          </div>
+        )}
         <Card className="border-0 shadow-2xl">
           <CardHeader className="pb-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-gray-900 uppercase">
                     {product.name}
                   </h2>
                   {product.url && (
@@ -104,7 +119,7 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
                     </a>
                   )}
                 </div>
-                <p className="text-gray-600 mb-4">{product.description}</p>
+                <p className="text-gray-600 text-[14px] mb-4">{product.description}</p>
                 
                 <div className={`flex items-center space-x-3 p-3 rounded-lg ${statusConfig.bg} ${statusConfig.border} border`}>
                   <StatusIcon className={`w-5 h-5 ${statusConfig.text}`} />
@@ -133,25 +148,33 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
               <Button
                 variant="outline"
                 onClick={() => navigation.previousStage && handleStageChange(navigation.previousStage)}
-                disabled={!navigation.canGoBack}
-                className="flex items-center space-x-2"
+                disabled={!navigation.canGoBack || isChangingStage}
+                className="flex items-center space-x-2 cursor-pointer"
               >
-                <ChevronLeft className="w-4 h-4" />
+                {isChangingStage ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4" />
+                )}
                 <span>
-                  {navigation.previousStage ? `Move to ${navigation.previousStage}` : 'Already at first stage'}
+                  {isChangingStage ? 'Moving...' : navigation.previousStage ? `Move to ${navigation.previousStage}` : 'Already at first stage'}
                 </span>
               </Button>
               
               <Button
                 variant="outline"
                 onClick={() => navigation.nextStage && handleStageChange(navigation.nextStage)}
-                disabled={!navigation.canGoForward}
-                className="flex items-center space-x-2"
+                disabled={!navigation.canGoForward || isChangingStage}
+                className="flex items-center space-x-2 cursor-pointer"
               >
                 <span>
-                  {navigation.nextStage ? `Move to ${navigation.nextStage}` : 'Already at final stage'}
+                  {isChangingStage ? 'Moving...' : navigation.nextStage ? `Move to ${navigation.nextStage}` : 'Already at final stage'}
                 </span>
-                <ChevronRight className="w-4 h-4" />
+                {isChangingStage ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
               </Button>
             </div>
 
