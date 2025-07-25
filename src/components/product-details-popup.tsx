@@ -12,7 +12,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -72,6 +74,19 @@ const getStageNavigation = (currentStage: string) => {
     previousStage: currentIndex > 0 ? stages[currentIndex - 1] : null,
     nextStage: currentIndex < stages.length - 1 ? stages[currentIndex + 1] : null
   };
+};
+
+const getCriteriaLabel = (key: string) => {
+    const labelMap: { [key: string]: string } = {
+    'staging': 'Link pra Staging',
+    'bugs_critical': 'Sem bugs high/highest',
+    'bugs_medium_plus': 'Sem bugs medium+',
+    'bugs_all': 'Sem nenhum bug registrado',
+    'active_users_1': 'Pelo menos 3 usuarios',
+    'active_users_2': 'Pelo menos 10 usuarios',
+    'active_users_3': 'Pelo menos 50 usuarios'
+  };
+  return labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
 export function ProductDetailsPopup({ product, onClose, onStageChange }: ProductDetailsPopupProps) {
@@ -135,7 +150,7 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
                 variant="ghost" 
                 size="sm" 
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -149,7 +164,7 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
                 variant="outline"
                 onClick={() => navigation.previousStage && handleStageChange(navigation.previousStage)}
                 disabled={!navigation.canGoBack || isChangingStage}
-                className="flex items-center space-x-2 cursor-pointer"
+                className="flex items-center space-x-2 cursor-pointer hover:-translate-y-1"
               >
                 {isChangingStage ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -165,7 +180,7 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
                 variant="outline"
                 onClick={() => navigation.nextStage && handleStageChange(navigation.nextStage)}
                 disabled={!navigation.canGoForward || isChangingStage}
-                className="flex items-center space-x-2 cursor-pointer"
+                className="flex items-center space-x-2 cursor-pointer hover:-translate-y-1"
               >
                 <span>
                   {isChangingStage ? 'Moving...' : navigation.nextStage ? `Move to ${navigation.nextStage}` : 'Already at final stage'}
@@ -181,8 +196,8 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
             {/* Readiness Progress */}
             <div className="bg-white border border-gray-200 p-4 rounded-lg">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">Readiness Score</h3>
-                <span className="text-2xl font-bold text-gray-900">{product.readinessScore}%</span>
+                <h3 className="text-lg font-semibold text-gray-900">Progresso para a proxima fase</h3>
+                <span className="text-2xl font-bold text-gray-900">{Math.round(product.readinessScore)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 
@@ -201,11 +216,13 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
               <div className="grid grid-cols-1 gap-2">
                 {Object.entries(product.criteria).map(([key, value]) => (
                   <div key={key} className="flex items-center space-x-3">
-                    <span className={`text-lg ${value ? 'text-green-500' : 'text-red-500'}`}>
-                      {value ? '✓' : '✗'}
-                    </span>
-                    <span className={`text-sm ${value ? 'text-gray-700' : 'text-gray-500'} capitalize`}>
-                      {key.replace(/_/g, ' ')}
+                    {value ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-500" />
+                    )}
+                    <span className={`text-sm ${value ? 'text-gray-700' : 'text-gray-500'}`}>
+                      {getCriteriaLabel(key)}
                     </span>
                   </div>
                 ))}

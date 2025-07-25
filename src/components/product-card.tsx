@@ -6,7 +6,9 @@ import {
   CheckCircle,
   Target,
   Activity,
-  MoreHorizontal
+  MoreHorizontal,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +73,19 @@ const getStatusConfig = (status: string) => {
   }
 };
 
+const getCriteriaLabel = (key: string) => {
+  const labelMap: { [key: string]: string } = {
+    'staging': 'Link pra Staging',
+    'bugs_critical': 'Sem bugs high/highest',
+    'bugs_medium_plus': 'Sem bugs medium+',
+    'bugs_all': 'Sem nenhum bug registrado',
+    'active_users_1': 'Pelo menos 3 usuarios',
+    'active_users_2': 'Pelo menos 10 usuarios',
+    'active_users_3': 'Pelo menos 50 usuarios'
+  };
+  return labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = statusConfig.icon;
@@ -104,7 +119,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         {/* Readiness Progress */}
         <div>
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-medium text-gray-700">Readiness</span>
+            <span className="text-sm font-medium text-gray-700">Progresso para a proxima fase</span>
             <span className="text-sm font-semibold text-gray-900">{Math.round(product.readinessScore)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -124,11 +139,13 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           <div className="space-y-0.5">
             {Object.entries(product.criteria).slice(0, 3).map(([key, value]) => (
               <div key={key} className="flex items-center space-x-1 text-sm">
-                <span className={value ? 'text-green-500' : 'text-red-500'}>
-                  {value ? '✓' : '✗'}
-                </span>
-                <span className="text-gray-600 capitalize text-sm">
-                  {key.replace(/_/g, ' ')}
+                {value ? (
+                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                ) : (
+                  <XCircle className="w-3 h-3 text-red-500" />
+                )}
+                <span className="text-gray-600 text-sm">
+                  {getCriteriaLabel(key)}
                 </span>
               </div>
             ))}

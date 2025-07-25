@@ -1,3 +1,13 @@
+export interface ProductCriteria {
+  staging: boolean;
+  bugs_critical: boolean;
+  bugs_medium_plus: boolean;
+  bugs_all: boolean;
+  active_users_1: boolean;
+  active_users_2: boolean;
+  active_users_3: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -8,7 +18,7 @@ export interface Product {
   status: 'ready' | 'blocked' | 'in-progress';
   readinessScore: number;
   url?: string | null;
-  criteria: Record<string, boolean>;
+  criteria: ProductCriteria;
   metrics: Record<string, number | null>;
   blockers: string[];
   nextAction: string;
