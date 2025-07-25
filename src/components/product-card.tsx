@@ -8,11 +8,19 @@ import {
   Activity,
   MoreHorizontal,
   CheckCircle2,
-  XCircle
+  XCircle,
+  ArrowRight,
+  Lock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/types';
+import { 
+  canTransitionToNextStage, 
+  getRequiredCriteriaForTransition,
+  getNextStage,
+  Stage as MaturityStage 
+} from '@/lib/maturity-framework';
 
 interface ProductCardProps {
   product: Product;
@@ -90,6 +98,19 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = statusConfig.icon;
   const stageHoverColor = getStageHoverColor(product.stage);
+  
+  // Get next stage and transition information using maturity framework
+  const nextStage = getNextStage(product.stage as MaturityStage);
+  const transitionResult = canTransitionToNextStage(
+    product.stage as MaturityStage,
+    product.criteria || {}
+  );
+  const requiredCriteria = getRequiredCriteriaForTransition(product.stage as MaturityStage);
+  
+  // Calculate progress percentage for next stage
+  const nextStageProgress = requiredCriteria.length > 0 
+    ? Math.round((requiredCriteria.filter(criterion => (product.criteria as any)[criterion] === true).length / requiredCriteria.length) * 100)
+    : 100; // 100% if no criteria required (final stage)
 
   return (
     <Card 
@@ -110,45 +131,73 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <div className={`flex items-center space-x-2 p-2 rounded-lg ${statusConfig.bg} ${statusConfig.border} border`}>
           <StatusIcon className={`w-3 h-3 ${statusConfig.text}`} />
           <span className={`text-sm font-medium ${statusConfig.text}`}>
-            {product.stage}→{product.targetStage} {statusConfig.label}
+            {product.stage}→{nextStage || 'Final'} {statusConfig.label}
           </span>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {/* Readiness Progress */}
+        {/* Next Stage Progress */}
         <div>
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-medium text-gray-700">Progresso para a proxima fase</span>
-            <span className="text-sm font-semibold text-gray-900">{Math.round(product.readinessScore)}%</span>
+            <span className="text-sm font-medium text-gray-700">
+               Progresso para o proximo estagio
+            </span>
+            <span className="text-sm font-semibold text-gray-900">{nextStageProgress}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1.5">
             <div 
               className={`h-1.5 rounded-full transition-all duration-1000 ${
-                product.status === 'ready' ? 'bg-green-500' : 
-                product.status === 'blocked' ? 'bg-red-500' : 'bg-yellow-500'
+                nextStageProgress === 100 ? 'bg-green-500' : 
+                nextStageProgress >= 50 ? 'bg-yellow-500' : 'bg-red-500'
               }`}
-              style={{ width: `${product.readinessScore}%` }}
+              style={{ width: `${nextStageProgress}%` }}
             />
           </div>
         </div>
 
         {/* Exit Criteria */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-1">Exit Criteria</h4>
-          <div className="space-y-0.5">
-            {Object.entries(product.criteria).slice(0, 3).map(([key, value]) => (
-              <div key={key} className="flex items-center space-x-1 text-sm">
-                {value ? (
-                  <CheckCircle2 className="w-3 h-3 text-green-500" />
-                ) : (
-                  <XCircle className="w-3 h-3 text-red-500" />
+          <div className="flex items-center justify-between mb-1">
+            <h4 className="text-sm font-semibold text-gray-700">Exit Criteria</h4>
+            {nextStage && (
+              <div className="flex items-center space-x-1 text-xs">
+                <ArrowRight className="w-3 h-3 text-gray-400" />
+                <span className="text-gray-500">{nextStage}</span>
+                {!transitionResult.canTransition && (
+                  <Lock className="w-3 h-3 text-red-400" />
                 )}
-                <span className="text-gray-600 text-sm">
-                  {getCriteriaLabel(key)}
+              </div>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            {/* Show only required criteria for next stage transition */}
+            {requiredCriteria.length > 0 ? (
+              requiredCriteria.map((criterionKey) => {
+                const value = (product.criteria as any)[criterionKey];
+                const isBlocking = transitionResult.blockingCriteria.includes(criterionKey);
+                
+                return (
+                  <div key={criterionKey} className={`flex items-center space-x-1 text-sm ${isBlocking ? 'bg-red-50 px-1 rounded' : ''}`}>
+                    {value ? (
+                      <CheckCircle2 className="w-3 h-3 text-green-500" />
+                    ) : (
+                      <XCircle className="w-3 h-3 text-red-500" />
+                    )}
+                    <span className={`text-sm ${isBlocking ? 'text-red-700 font-medium' : 'text-gray-600'}`}>
+                      {getCriteriaLabel(criterionKey)}
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex items-center space-x-1 text-sm">
+                <CheckCircle2 className="w-3 h-3 text-green-500" />
+                <span className="text-gray-600 text-sm italic">
+                  Estágio final alcançado
                 </span>
               </div>
-            ))}
+            )}
           </div>
         </div>
 

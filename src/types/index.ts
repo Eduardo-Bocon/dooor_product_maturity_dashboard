@@ -18,7 +18,7 @@ export interface Product {
   status: 'ready' | 'blocked' | 'in-progress';
   readinessScore: number;
   url?: string | null;
-  criteria: ProductCriteria;
+  criteria: ProductCriteria | Record<string, boolean>;
   metrics: Record<string, number | null>;
   blockers: string[];
   nextAction: string;

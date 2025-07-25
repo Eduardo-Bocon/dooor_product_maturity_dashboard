@@ -6,6 +6,12 @@ import { StatsOverview } from '@/components/stats-overview';
 import { StageColumn } from '@/components/stage-column';
 import { ProductDetailsPopup } from '@/components/product-details-popup';
 import { Product, Stage, StageId } from '@/types';
+import { 
+  canTransitionToNextStage, 
+  calculateReadinessScore,
+  getNextStage,
+  Stage as MaturityStage 
+} from '@/lib/maturity-framework';
 
 const ProductMaturityDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -36,7 +42,7 @@ const ProductMaturityDashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('https://back-product-maturity.onrender.com/maturity/products');
+      const response = await fetch('http://127.0.0.1:8000/maturity/products');
       
       if (!response.ok) {
         throw new Error(`Failed to fetch products data: ${response.status}`);
@@ -54,16 +60,51 @@ const ProductMaturityDashboard = () => {
         throw new Error('API response products is not an array');
       }
       
-      // Ensure all products have safe default values
-      const safeProducts = productsArray.map((product: any) => ({
-        ...product,
-        blockers: product.blockers || [],
-        nextAction: product.nextAction || 'No action defined',
-        description: product.description || 'No description',
-        stage: product.stage || 'V1',
-        targetStage: product.targetStage || 'V2',
-        daysInStage: product.daysInStage || 0
-      }));
+      // Ensure all products have safe default values and enhanced calculations
+      const safeProducts = productsArray.map((product: any) => {
+        const productStage = product.stage || 'V1';
+        const criteria = product.criteria || {};
+        
+        // Calculate enhanced readiness score using maturity framework
+        const calculatedReadinessScore = calculateReadinessScore(
+          productStage as MaturityStage, 
+          criteria
+        );
+        
+        // Get the next stage in sequence
+        const nextStage = getNextStage(productStage as MaturityStage);
+        
+        // Check transition readiness
+        const transitionResult = canTransitionToNextStage(
+          productStage as MaturityStage,
+          criteria
+        );
+        
+        // Determine status based on transition readiness
+        let status = product.status;
+        if (!status) {
+          if (transitionResult.canTransition) {
+            status = 'ready';
+          } else if (transitionResult.blockingCriteria.length > 0) {
+            status = 'blocked';
+          } else {
+            status = 'in-progress';
+          }
+        }
+        
+        return {
+          ...product,
+          blockers: product.blockers || [],
+          nextAction: product.nextAction || 'No action defined',
+          description: product.description || 'No description',
+          stage: productStage,
+          targetStage: nextStage || 'Final',
+          daysInStage: product.daysInStage || 0,
+          readinessScore: calculatedReadinessScore,
+          status: status,
+          transitionResult: transitionResult
+        };
+      });
       
       setProducts(safeProducts);
     } catch (err) {
@@ -120,9 +161,29 @@ const ProductMaturityDashboard = () => {
   };
 
   const handleStageChange = async (productId: string, newStage: string) => {
+    // Find the product to show warning for transitions without met criteria
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      const transitionResult = canTransitionToNextStage(
+        product.stage as MaturityStage,
+        product.criteria || {}
+      );
+      
+      // Show warning for forward transitions without met criteria, but allow them
+      const stages = ['V1', 'V2', 'V3', 'V4', 'V5'];
+      const currentIndex = stages.indexOf(product.stage);
+      const newIndex = stages.indexOf(newStage);
+      
+      if (newIndex > currentIndex && !transitionResult.canTransition) {
+        const blockingCriteria = transitionResult.blockingCriteria.join(', ');
+        console.warn(`Warning: Transitioning to ${newStage} without meeting criteria: ${blockingCriteria}`);
+        // Continue with transition despite unmet criteria
+      }
+    }
+    
     try {
       // Try the documented endpoint first
-      let response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
+      let response = await fetch(`http://127.0.0.1:8000/maturity/products/${productId}/stage`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +193,7 @@ const ProductMaturityDashboard = () => {
 
       // If 404, try alternative endpoint structure
       if (!response.ok && response.status === 404) {
-        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}`, {
+        response = await fetch(`http://127.0.0.1:8000/maturity/products/${productId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -143,7 +204,7 @@ const ProductMaturityDashboard = () => {
 
       // If still not working, try PUT method
       if (!response.ok && response.status === 404) {
-        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
+        response = await fetch(`http://127.0.0.1:8000/maturity/products/${productId}/stage`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -228,7 +289,7 @@ const ProductMaturityDashboard = () => {
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">Backend Connection Error</h3>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
-                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at back-product-maturity.onrender.com</p>
+                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at http://127.0.0.1:8000</p>
               </div>
             </div>
           </div>
