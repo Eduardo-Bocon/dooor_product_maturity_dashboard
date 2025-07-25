@@ -42,7 +42,7 @@ const ProductMaturityDashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://127.0.0.1:8000/maturity/products');
+      const response = await fetch('https://back-product-maturity.onrender.com/maturity/products');
       
       if (!response.ok) {
         throw new Error(`Failed to fetch products data: ${response.status}`);
@@ -183,7 +183,7 @@ const ProductMaturityDashboard = () => {
     
     try {
       // Try the documented endpoint first
-      let response = await fetch(`http://127.0.0.1:8000/maturity/products/${productId}/stage`, {
+      let response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ const ProductMaturityDashboard = () => {
 
       // If 404, try alternative endpoint structure
       if (!response.ok && response.status === 404) {
-        response = await fetch(`http://127.0.0.1:8000/maturity/products/${productId}`, {
+        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ const ProductMaturityDashboard = () => {
 
       // If still not working, try PUT method
       if (!response.ok && response.status === 404) {
-        response = await fetch(`http://127.0.0.1:8000/maturity/products/${productId}/stage`, {
+        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -289,7 +289,7 @@ const ProductMaturityDashboard = () => {
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">Backend Connection Error</h3>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
-                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at http://127.0.0.1:8000</p>
+                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at https://back-product-maturity.onrender.com</p>
               </div>
             </div>
           </div>
