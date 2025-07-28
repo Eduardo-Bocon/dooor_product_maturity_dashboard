@@ -95,8 +95,6 @@ const getCriteriaLabel = (key: string) => {
 };
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const statusConfig = getStatusConfig(product.status);
-  const StatusIcon = statusConfig.icon;
   const stageHoverColor = getStageHoverColor(product.stage);
   
   // Get next stage and transition information using maturity framework
@@ -111,6 +109,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const nextStageProgress = requiredCriteria.length > 0 
     ? Math.round((requiredCriteria.filter(criterion => (product.criteria as any)[criterion] === true).length / requiredCriteria.length) * 100)
     : 100; // 100% if no criteria required (final stage)
+
+  // Determine status based on progress and backend status
+  const effectiveStatus = nextStageProgress === 100 ? 'ready' : product.status;
+  const statusConfig = getStatusConfig(effectiveStatus);
+  const StatusIcon = statusConfig.icon;
 
   return (
     <Card 
