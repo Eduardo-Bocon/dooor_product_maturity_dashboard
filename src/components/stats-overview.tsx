@@ -2,16 +2,32 @@
 
 import { Product } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { 
+  getRequiredCriteriaForTransition,
+  Stage as MaturityStage 
+} from '@/lib/maturity-framework';
 
 interface StatsOverviewProps {
   products: Product[];
 }
 
 export function StatsOverview({ products }: StatsOverviewProps) {
+  // Helper function to calculate progress for a product
+  const calculateProgress = (product: Product) => {
+    const requiredCriteria = getRequiredCriteriaForTransition(product.stage as MaturityStage);
+    if (requiredCriteria.length === 0) return 100; // Final stage
+    
+    const completedCriteria = requiredCriteria.filter(criterion => 
+      (product.criteria as any)?.[criterion] === true
+    ).length;
+    
+    return Math.round((completedCriteria / requiredCriteria.length) * 100);
+  };
+
   const stats = {
     totalProducts: products.length,
-    readyToAdvance: products.filter(p => p.status === 'ready').length,
-    blocked: products.filter(p => p.status === 'blocked').length,
+    readyToAdvance: products.filter(p => calculateProgress(p) === 100).length,
+    blocked: products.filter(p => calculateProgress(p) < 100 && p.status === 'blocked').length,
     avgDaysInStage: Math.round(products.reduce((acc, p) => acc + p.daysInStage, 0) / products.length)
   };
 
