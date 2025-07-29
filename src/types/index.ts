@@ -8,6 +8,7 @@ export interface ProductCriteria {
   latency_avg_500: boolean;
   latency_avg_1000: boolean;
   latency_p95: boolean;
+  security_headers: boolean;
   active_users_1: boolean;
   active_users_2: boolean;
   active_users_3: boolean;

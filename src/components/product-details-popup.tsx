@@ -103,6 +103,7 @@ const getCriteriaLabel = (key: string) => {
     'latency_avg_500': 'Latência média < 500ms',
     'latency_avg_1000': 'Latência média < 1000ms',
     'latency_p95': 'Latência P95 < 1000ms',
+    'security_headers': 'Headers de segurança configurados',
     'active_users_1': 'Pelo menos 3 usuarios',
     'active_users_2': 'Pelo menos 10 usuarios',
     'active_users_3': 'Pelo menos 50 usuarios'
