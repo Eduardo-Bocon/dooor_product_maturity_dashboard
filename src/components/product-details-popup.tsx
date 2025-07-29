@@ -20,7 +20,9 @@ import {
   Info,
   FileWarning,
   MessageCircleWarning,
-  CircleAlert
+  CircleAlert,
+  Edit2,
+  Save
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +40,7 @@ interface ProductDetailsPopupProps {
   product: Product;
   onClose: () => void;
   onStageChange: (productId: string, newStage: string) => void;
+  onObservationsUpdate?: (productId: string, observations: string) => void;
 }
 
 const getStatusConfig = (status: string) => {
@@ -104,8 +107,11 @@ const getCriteriaLabel = (key: string) => {
   return labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
-export function ProductDetailsPopup({ product, onClose, onStageChange }: ProductDetailsPopupProps) {
+export function ProductDetailsPopup({ product, onClose, onStageChange, onObservationsUpdate }: ProductDetailsPopupProps) {
   const [isChangingStage, setIsChangingStage] = useState(false);
+  const [isEditingObservations, setIsEditingObservations] = useState(false);
+  const [isSavingObservations, setIsSavingObservations] = useState(false);
+  const [observations, setObservations] = useState(product.observations || product.nextAction || '');
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = statusConfig.icon;
   const navigation = getStageNavigation(product.stage);
@@ -131,6 +137,25 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
     } finally {
       setIsChangingStage(false);
     }
+  };
+
+  const handleObservationsSave = async () => {
+    if (onObservationsUpdate) {
+      setIsSavingObservations(true);
+      try {
+        await onObservationsUpdate(product.id, observations);
+        setIsEditingObservations(false);
+      } catch (error) {
+        console.error('Failed to update observations:', error);
+      } finally {
+        setIsSavingObservations(false);
+      }
+    }
+  };
+
+  const handleObservationsCancel = () => {
+    setObservations(product.observations || product.nextAction || '');
+    setIsEditingObservations(false);
   };
 
   return (
@@ -163,7 +188,6 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
                     </a>
                   )}
                 </div>
-                <p className="text-gray-600 text-[14px] mb-4">{product.description}</p>
                 
                 <div className={`flex items-center space-x-3 p-3 rounded-lg ${statusConfig.bg} ${statusConfig.border} border`}>
                   <StatusIcon className={`w-5 h-5 ${statusConfig.text}`} />
@@ -238,14 +262,14 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
                     <h4 className={`font-medium text-sm ${
                       transitionResult.canTransition ? 'text-green-800' : 'text-yellow-800'
                     }`}>
-                      {transitionResult.canTransition ? 'Ready for Next Stage' : 'Transition Warning'}
+                      {transitionResult.canTransition ? 'Pronto para a proxima etapa' : 'Alerta de transição'}
                     </h4>
                     <p className={`text-sm mt-1 ${
                       transitionResult.canTransition ? 'text-green-700' : 'text-yellow-700'
                     }`}>
                       {transitionResult.canTransition 
-                        ? `All criteria met for ${nextStage} transition.`
-                        : `Transitioning without: ${transitionResult.blockingCriteria.map(getCriteriaLabel).join(', ')}. You can still proceed.`
+                        ? `Todos os critérios para ${nextStage} estão concluidos.`
+                        : `Ainda falta: ${transitionResult.blockingCriteria.map(getCriteriaLabel).join(', ')}.`
                       }
                     </p>
                   </div>
@@ -384,15 +408,70 @@ export function ProductDetailsPopup({ product, onClose, onStageChange }: Product
               </div>
             )}
 
-            {/* Next Action */}
+            {/* Observations */}
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                <Target className="w-5 h-5 mr-2" />
-                Next Action
-              </h3>
-              <p className="text-sm text-blue-700 leading-relaxed">
-                {product.nextAction || 'No action defined'}
-              </p>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-blue-800 flex items-center">
+                  <Target className="w-5 h-5 mr-2" />
+                  Observações
+                </h3>
+                {!isEditingObservations && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingObservations(true)}
+                    className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              
+              {isEditingObservations ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={observations}
+                    onChange={(e) => setObservations(e.target.value)}
+                    disabled={isSavingObservations}
+                    className="w-full p-3 border border-blue-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50 disabled:bg-gray-100"
+                    rows={4}
+                    placeholder="Adicione suas observações aqui..."
+                  />
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      onClick={handleObservationsSave}
+                      disabled={isSavingObservations}
+                      className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSavingObservations ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-1" />
+                          Save
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleObservationsCancel}
+                      disabled={isSavingObservations}
+                      className='cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-blue-700 leading-relaxed">
+                  {observations || 'Sem observações'}
+                </p>
+              )}
             </div>
 
             {/* Timeline Info */}

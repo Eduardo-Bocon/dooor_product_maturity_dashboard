@@ -24,6 +24,7 @@ export interface Product {
   metrics: Record<string, number | null>;
   blockers: string[];
   nextAction: string;
+  observations?: string;
   kickoffDate?: string | null;
 }
 

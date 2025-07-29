@@ -14,6 +14,7 @@ import {
 } from '@/lib/maturity-framework';
 
 const ProductMaturityDashboard = () => {
+  const backendUrl = 'https://back-product-maturity.onrender.com';
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [products, setProducts] = useState<Product[]>([]);
@@ -42,7 +43,7 @@ const ProductMaturityDashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('https://back-product-maturity.onrender.com/maturity/products');
+      const response = await fetch(`${backendUrl}/maturity/products`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch products data: ${response.status}`);
@@ -160,6 +161,38 @@ const ProductMaturityDashboard = () => {
     setSelectedProduct(null);
   };
 
+  const handleObservationsUpdate = async (productId: string, observations: string) => {
+    try {
+      const response = await fetch(`${backendUrl}/maturity/products/${productId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ observations: observations })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update observations: ${response.status}`);
+      }
+
+      console.log(`Successfully updated observations for ${productId}`);
+      
+      // Refresh products data to get updated state
+      await fetchProductsData();
+      
+      // Update the selected product if it's still open
+      if (selectedProduct && selectedProduct.id === productId) {
+        const updatedProduct = products.find(p => p.id === productId);
+        if (updatedProduct) {
+          setSelectedProduct(updatedProduct);
+        }
+      }
+    } catch (err) {
+      console.error('Error updating observations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update observations');
+    }
+  };
+
   const handleStageChange = async (productId: string, newStage: string) => {
     // Find the product to show warning for transitions without met criteria
     const product = products.find(p => p.id === productId);
@@ -183,7 +216,7 @@ const ProductMaturityDashboard = () => {
     
     try {
       // Try the documented endpoint first
-      let response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
+      let response = await fetch(`${backendUrl}/maturity/products/${productId}/stage`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +226,7 @@ const ProductMaturityDashboard = () => {
 
       // If 404, try alternative endpoint structure
       if (!response.ok && response.status === 404) {
-        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}`, {
+        response = await fetch(`${backendUrl}/maturity/products/${productId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -204,7 +237,7 @@ const ProductMaturityDashboard = () => {
 
       // If still not working, try PUT method
       if (!response.ok && response.status === 404) {
-        response = await fetch(`https://back-product-maturity.onrender.com/maturity/products/${productId}/stage`, {
+        response = await fetch(`${backendUrl}/maturity/products/${productId}/stage`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -289,7 +322,7 @@ const ProductMaturityDashboard = () => {
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">Backend Connection Error</h3>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
-                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at https://back-product-maturity.onrender.com</p>
+                <p className="text-xs text-red-600 mt-2">Make sure your backend is running at {backendUrl}</p>
               </div>
             </div>
           </div>
@@ -334,6 +367,7 @@ const ProductMaturityDashboard = () => {
           product={selectedProduct}
           onClose={handleClosePopup}
           onStageChange={handleStageChange}
+          onObservationsUpdate={handleObservationsUpdate}
         />
       )}
     </div>

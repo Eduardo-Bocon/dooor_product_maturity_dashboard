@@ -128,7 +128,6 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             <h3 className="font-semibold text-gray-900 text-lg uppercase">
               {product.name}
             </h3>
-            <p className="text-sm text-gray-600">{product.description}</p>
           </div>
           
         </div>
@@ -225,9 +224,9 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           <div className="flex items-start space-x-1">
             <Target className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-0.5">Next Action</p>
+              <p className="text-sm font-medium text-gray-900 mb-0.5">Observações</p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                {product.nextAction ? (product.nextAction.length > 50 ? product.nextAction.substring(0, 50) + '...' : product.nextAction) : 'No action defined'}
+                {(product.observations || product.nextAction) ? ((product.observations || product.nextAction).length > 50 ? (product.observations || product.nextAction).substring(0, 50) + '...' : (product.observations || product.nextAction)) : 'Sem observações'}
               </p>
             </div>
           </div>
