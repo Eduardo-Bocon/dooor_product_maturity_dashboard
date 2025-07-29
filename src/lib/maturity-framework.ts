@@ -6,7 +6,7 @@
  */
 
 export type Stage = 'V1' | 'V2' | 'V3' | 'V4' | 'V5';
-export type CriteriaKey = 'staging' | 'bugs_critical' | 'bugs_medium_plus' | 'bugs_all' | 'uptime_99' | 'uptime_95' | 'active_users_1' | 'active_users_2' | 'active_users_3';
+export type CriteriaKey = 'staging' | 'bugs_critical' | 'bugs_medium_plus' | 'bugs_all' | 'uptime_99' | 'uptime_95' | 'latency_avg_500' | 'latency_avg_1000' | 'latency_p95' | 'active_users_1' | 'active_users_2' | 'active_users_3';
 export type CriteriaEvaluations = Record<string, boolean> | { [K in CriteriaKey]?: boolean };
 
 export interface StageTransitionResult {
@@ -27,9 +27,12 @@ export const STAGE_TRANSITION_MAPPING: Record<CriteriaKey, string> = {
   "bugs_medium_plus": "V3 -> V4",
   "active_users_2": "V3 -> V4", 
   "uptime_95": "V3 -> V4",
+  "latency_avg_1000": "V3 -> V4",
   "bugs_all": "V4 -> V5",
   "active_users_3": "V4 -> V5",
-  "uptime_99": "V4 -> V5"
+  "uptime_99": "V4 -> V5",
+  "latency_avg_500": "V4 -> V5",
+  "latency_p95": "V4 -> V5"
 };
 
 /**
@@ -130,6 +133,9 @@ export function getStageTransitionDescription(currentStage: Stage): string {
       'bugs_all': 'Sem nenhum bug registrado',
       'uptime_99': 'Uptime >= 99%',
       'uptime_95': 'Uptime >= 95%',
+      'latency_avg_500': 'Latência média < 500ms',
+      'latency_avg_1000': 'Latência média < 1000ms',
+      'latency_p95': 'Latência P95 < 1000ms',
       'active_users_1': 'Pelo menos 3 usuarios',
       'active_users_2': 'Pelo menos 10 usuarios',
       'active_users_3': 'Pelo menos 50 usuarios'
