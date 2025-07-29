@@ -95,6 +95,8 @@ const getCriteriaLabel = (key: string) => {
     'bugs_critical': 'Sem bugs high/highest',
     'bugs_medium_plus': 'Sem bugs medium+',
     'bugs_all': 'Sem nenhum bug registrado',
+    'uptime_99': 'Uptime >= 99%',
+    'uptime_95': 'Uptime >= 95%',
     'active_users_1': 'Pelo menos 3 usuarios',
     'active_users_2': 'Pelo menos 10 usuarios',
     'active_users_3': 'Pelo menos 50 usuarios'

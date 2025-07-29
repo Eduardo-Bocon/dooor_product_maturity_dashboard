@@ -3,6 +3,8 @@ export interface ProductCriteria {
   bugs_critical: boolean;
   bugs_medium_plus: boolean;
   bugs_all: boolean;
+  uptime_99: boolean;
+  uptime_95: boolean;
   active_users_1: boolean;
   active_users_2: boolean;
   active_users_3: boolean;
