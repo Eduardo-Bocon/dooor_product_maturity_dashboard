@@ -15,7 +15,7 @@ import {
 } from '@/lib/maturity-framework';
 
 const ProductMaturityDashboard = () => {
-  const backendUrl = 'http://localhost:8000';
+  const backendUrl = 'https://back-product-maturity.onrender.com';
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [products, setProducts] = useState<Product[]>([]);
