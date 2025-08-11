@@ -7,7 +7,8 @@ import {
   Minimize2,
   Maximize2,
   ChevronDown,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -21,6 +22,7 @@ interface DashboardHeaderProps {
   availableProjects: string[];
   selectedProjects: string[];
   onProjectFilter: (projects: string[]) => void;
+  onCreateProduct?: () => void;
 }
 
 export function DashboardHeader({ 
@@ -30,7 +32,8 @@ export function DashboardHeader({
   onRefresh,
   availableProjects,
   selectedProjects,
-  onProjectFilter
+  onProjectFilter,
+  onCreateProduct
 }: DashboardHeaderProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
@@ -94,6 +97,15 @@ export function DashboardHeader({
               <Clock className="w-4 h-4" />
               <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
             </div>
+            
+            <Button 
+              size="sm"
+              className='cursor-pointer bg-green-600 hover:bg-green-700'
+              onClick={onCreateProduct}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Product
+            </Button>
             
             <div className="relative" ref={filterRef}>
               <Button 

@@ -5,6 +5,7 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { StatsOverview } from '@/components/stats-overview';
 import { StageColumn } from '@/components/stage-column';
 import { ProductDetailsPopup } from '@/components/product-details-popup';
+import { CreateProductModal } from '@/components/create-product-modal';
 import { Product, Stage, StageId } from '@/types';
 import { 
   canTransitionToNextStage, 
@@ -14,7 +15,7 @@ import {
 } from '@/lib/maturity-framework';
 
 const ProductMaturityDashboard = () => {
-  const backendUrl = 'https://back-product-maturity.onrender.com';
+  const backendUrl = 'http://localhost:8000';
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,6 +30,7 @@ const ProductMaturityDashboard = () => {
   });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProjectsFilter, setSelectedProjectsFilter] = useState<string[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Get unique project names for filter
   const availableProjects = [...new Set(products.map(product => product.name))].sort();
@@ -271,6 +273,32 @@ const ProductMaturityDashboard = () => {
     }
   };
 
+  const handleCreateProduct = async (productData: { id: string; name: string; description: string }) => {
+    try {
+      const response = await fetch(`${backendUrl}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create product: ${response.status} - ${response.statusText}`);
+      }
+
+      console.log(`Successfully created product: ${productData.name}`);
+      
+      // Refresh products data to include the new product
+      await fetchProductsData();
+      
+    } catch (err) {
+      console.error('Error creating product:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create product');
+      throw err; // Re-throw so the modal can handle it
+    }
+  };
+
   useEffect(() => {
     // Fetch all products data on component mount
     fetchProductsData();
@@ -294,6 +322,7 @@ const ProductMaturityDashboard = () => {
           availableProjects={availableProjects}
           selectedProjects={selectedProjectsFilter}
           onProjectFilter={setSelectedProjectsFilter}
+          onCreateProduct={() => setIsCreateModalOpen(true)}
         />
         
         <StatsOverview products={filteredProducts} />
@@ -370,6 +399,13 @@ const ProductMaturityDashboard = () => {
           onObservationsUpdate={handleObservationsUpdate}
         />
       )}
+      
+      {/* Create Product Modal */}
+      <CreateProductModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreateProduct={handleCreateProduct}
+      />
     </div>
   );
 };
